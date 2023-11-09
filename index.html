@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesotho Orphanages</title>
+  <style>
+    body {
+      background-image: url('R.jpeg');
+      background-repeat: no-repeat;
+      background-size: 100%;
+      color: black;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      
+    }
+
+    .container {
+      margin-top: 5%;
+      text-align: center;
+    }
+
+    h1 {
+      color: #fff;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .list {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+
+    .details {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .list-group {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 0;
+      list-style: none;
+      overflow: auto;
+      max-height: 300px;
+    }
+
+    .list-group-item {
+      padding: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .list-group-item:hover {
+      background-color: white;
+      color: black;
+    }
+
+    .details-container {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    .progress {
+      height: 20px;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      border-radius: 5px;
+    }
+
+     .logo{
+        width: 75px;
+        height: 40px;
+
+    }
+    .copy{
+        background-color: white;
+        color: black;
+        text-align: center;
+        border-radius: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><img src="flag.jpeg" alt ="flag" class="logo"> Lesotho Orphanages </h1>
+    <p><b>Mosala le likhutsana ha a koate, etsoe a ka koata li ka robala teleha</b><br>
+        We are a helping hand
+    </p>
+    <div class="row">
+      <div class="list">
+        <input type="text" class="search-bar" id="search-bar" placeholder="Search Orphanages">
+        <ul class="list-group" id="orphanage-list"></ul>
+      </div>
+      <div class="details">
+        <div class="details-container" id="orphanage-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const orphanageList = document.getElementById('orphanage-list');
+    const orphanageDetails = document.getElementById('orphanage-details');
+    const searchBar = document.getElementById('search-bar');
+
+    function fetchOrphanageData(url)
+    {
+      return fetch(url)
+        .then(response => {
+          if (!response.ok)
+          {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    function displayOrphanageDetails(orphanage)
+    {
+      fetchOrphanageData(`https://lesotho-orphanages.vercel.app/${orphanage.id}`)
+        .then(response => {
+          const { donated, target } = response;
+          const percentage = Math.round((donated / target) * 100);
+
+          orphanageDetails.innerHTML = `
+            <h2>${orphanage.name}</h2>
+            <img src="${orphanage.image}" alt="${orphanage.name}" style="max-width: 100%;" class="mb-3">
+            <p><strong>Location:</strong> ${orphanage.location}</p>
+            <p><strong>Amount Donated:</strong> ${donated} / ${target}</p>
+            <p><strong>Percentage :</strong>${percentage}%
+              <div class="progress mb-3">
+                <div class="progress-bar bg-success" role="progressbar" style="width: ${percentage}%" aria-valuenow="${percentage}"</div>
+              </div>
+            </p>
+          `;
+        });
+    }
+
+    function createOrphanageListItem(orphanage)
+    {
+      const listItem = document.createElement('li');
+      listItem.classList.add('list-group-item');
+      listItem.textContent = orphanage.name;
+      listItem.addEventListener('click', () => {
+        displayOrphanageDetails(orphanage);
+      });
+      return listItem;
+    }
+
+    function filterOrphanages(searchTerm, orphanages) {
+      return orphanages.filter(orphanage => orphanage.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+
+    function displayOrphanages(orphanages) {
+      orphanageList.innerHTML = '';
+      orphanages.forEach(orphanage => {
+        const listItem = createOrphanageListItem(orphanage);
+        orphanageList.appendChild(listItem);
+      });
+    }
+
+    // Fetch data from API
+    fetchOrphanageData('https://lesotho-orphanages.vercel.app/')
+      .then(orphanages => {
+        displayOrphanages(orphanages);
+
+        searchBar.addEventListener('input', () => {
+          const searchTerm = searchBar.value;
+          const filteredOrphanages = filterOrphanages(searchTerm, orphanages);
+          displayOrphanages(filteredOrphanages);
+        });
+      });
+  </script>
+</body>
+<footer>
+    <p class="copy">
+        copyright &copy; 2023 gov.ls
+    </p>
+</footer>
+</html>
